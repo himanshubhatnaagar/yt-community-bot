@@ -14,11 +14,16 @@ HEADERS = {
 
 def fetch_community_posts():
     html = requests.get(YOUTUBE_COMMUNITY_URL, headers=HEADERS).text
-    match = re.search(r"var ytInitialData = (.*?);</script>", html)
+
+    print("HTML length:", len(html))
+
+    match = re.search(r"ytInitialData\s*=\s*(\{.*?\});", html)
     if not match:
+        print("❌ ytInitialData not found")
         return []
 
     data = json.loads(match.group(1))
+    print("✅ ytInitialData parsed")
 
     posts = []
     tabs = data["contents"]["twoColumnBrowseResultsRenderer"]["tabs"]
@@ -49,6 +54,11 @@ def send_to_telegram(text):
     requests.post(url, json=payload)
 
 def main():
+
+    # test
+    send_to_telegram(f'Hello there {time.time()}')
+    # test
+
     last_id = open("last_post_id.txt").read().strip() if os.path.exists("last_post_id.txt") else None
 
     posts = fetch_community_posts()
@@ -61,10 +71,6 @@ def main():
         if post_id == last_id:
             break
         new_posts.append((post_id, text))
-
-    # test
-    send_to_telegram(f'Hello there {time.time()}')
-    # test
 
     # Send from oldest → newest
     for post_id, text in reversed(new_posts):
