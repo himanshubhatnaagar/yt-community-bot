@@ -69,13 +69,15 @@ def extract_posts(data, max_posts=50):
                 # ---- IMAGES / GIFS ----
                 images = []
 
+                # Image directly attached to post
+                if "image" in r:
+                    thumbs = r["image"].get("thumbnails", [])
+                    if thumbs:
+                        images.append(normalize_image_url(thumbs[-1]["url"]))
+
+                # Image via attachment (link preview, multi-image, etc.)
                 attachment = r.get("backstageAttachment", {})
-                images = extract_images(attachment)
-                posts.append({
-                    "id": post_id,
-                    "text": text,
-                    "images": images
-                })
+                images.extend(extract_images(attachment))
 
             for v in obj.values():
                 walk(v)
