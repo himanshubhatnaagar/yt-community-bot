@@ -79,6 +79,12 @@ def extract_posts(data, max_posts=50):
                 attachment = r.get("backstageAttachment", {})
                 images.extend(extract_images(attachment))
 
+                posts.append({
+                    "id": post_id,
+                    "text": text,
+                    "images": images
+                })
+
             for v in obj.values():
                 walk(v)
 
