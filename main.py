@@ -102,17 +102,9 @@ def send_photo(photo_url, caption):
     )
 
 def main():
-    html = requests.get(YOUTUBE_POSTS_URL, headers=HEADERS).text
-    match = re.search(r"ytInitialData\s*=\s*(\{.*?\});", html, re.DOTALL)
-    if not match:
-        print("ytInitialData not found")
-        return
-
-    data = json.loads(match.group(1))
-    posts = extract_posts(data, max_posts=50)
-
+    posts = fetch_community_posts()
     if not posts:
-        print("No posts found")
+        print("No posts to process")
         return
 
     last_id = ""
@@ -120,13 +112,15 @@ def main():
         last_id = open("last_post_id.txt").read().strip()
 
     new_posts = []
+
     for post in posts:
         if post["id"] == last_id:
             break
         new_posts.append(post)
 
-    # Send oldest → newest
-    for post in reversed(new_posts):
+    print(f"New posts to send: {len(new_posts)}")
+
+    for post in new_posts:
         header = "📢 *Clash of Clans – Community Post*\n\n"
         text = header + (post["text"] or "")
 
@@ -137,7 +131,7 @@ def main():
 
     if new_posts:
         with open("last_post_id.txt", "w") as f:
-            f.write(new_posts[0]["id"])
+            f.write(new_posts[-1]["id"])
 
 if __name__ == "__main__":
     main()
